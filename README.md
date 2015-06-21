@@ -26,3 +26,5 @@ The source contains:
 In our repository you'll find all the library and `mruby` gems that must be used to compile the core engine to run the scripts
 
 ### Keep hacking on!
+
+[Video presentation on Vimeo](https://vimeo.com/131325709)
