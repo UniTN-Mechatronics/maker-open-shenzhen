@@ -1,0 +1,263 @@
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <style>
+  body {
+  	font-family: sans-serif;
+  	background-color: #eee;
+  }
+
+  .container {
+  	top:0; bottom: 0;
+  	left: 0; right: 0;
+  	width: 1000px;
+  	height: 700px;
+  	background-color: #F4F7E7;
+  	border: 1px solid #777;
+  	margin: auto;
+  	border-radius: 20px;
+  }
+
+  h2 {
+  	border-bottom: 1px solid #777;
+  	padding-bottom: 10px;
+  	padding-top: 10px;
+  	text-align: center;
+  }
+
+  .img-cnt {
+  	width: 100%;
+  	height: 100%;
+ 		padding-left: 10px;
+ 		padding-top: 15px; 	
+  }
+  .btn {
+  	width: 200px;
+  	height: 50px;
+  	color: white;
+  	background-color: #98B0D1;
+  	border: 1px solid #98B0D1;
+  	border-radius: 10px;
+  	margin: 10px;
+  }
+
+  #btn-stop {
+  	background-color: #CA2A2B;
+  	border-color: #CA2A2B;
+  }
+
+  #calibration-img {
+  	width: 720px;
+  	height: 540px;
+  	margin: auto;
+  	float: right;
+  	background-color: black;
+  }
+
+  .label {
+  	margin-bottom: 10px;
+  	margin-left: 10px;
+  	margin-right: 10px;
+  }
+
+  .value {
+  	font-family: monospace;
+  	font-size: 2em;
+  }
+
+  td {
+  	text-align: center;
+  }
+
+  table{
+  	border-collapse: collapse;
+  }
+  </style>
+  </head>
+  <body>
+  <div class="container">
+    <h2>CHESS OBJECT WEB INTERFACE</h2>
+  <!--
+	Quando in idle permetti di scattare una foto e visualizzarla
+	Abilita il controllo manuale
+	Abilita il controllo laser
+	Metti in idle
+	scatta una foto e visualizzala
+	permetti il movimento mediante le frecce
+  -->
+
+  	<table>
+  		<tr><td>
+		  	<button class="btn" id="btn-stop">STOP (停止)</button><br>
+		  	<button class="btn" id="btn-manual">MANUAL (手动)</button><br>
+		  	<button class="btn" id="btn-remote">LASER (激光器)</button><br>
+		  	<br>
+		  	<button class="btn" id="btn-photo">UPDATE PHOTO (更新照片)</button><br>
+		  	<br>
+		  	<span class="label">State (状态):</span><br><span id="state-value" class="value">0</span><br><br>
+		  </td>
+		  <td>
+		  	<div class="img-cnt">
+		  	<img id="calibration-img" src="static/foto.jpg"/>
+		  	</div>
+		  </td></tr>
+		</table>
+  </div>
+
+  <script>
+  var stop_btn = document.getElementById("btn-stop");
+  var manual_btn = document.getElementById("btn-manual");
+  var remote_btn = document.getElementById("btn-remote");
+  var photo_btn = document.getElementById("btn-photo");
+
+  var state_value = document.getElementById("state-value");
+
+  var photo = document.getElementById("calibration-img");
+
+  function send_message(type, cb_404, cb_200) {
+	  var request = new XMLHttpRequest;
+	  var content = ""
+	  switch(type) {
+	    case "stop": 
+	      content = "api/stop";
+	    break;
+	    case "query":
+	    	content = "api/query";
+	    break;
+	    case "up":
+	    	content = "api/up";
+	    break;
+	    case "down":
+	    	content = "api/down";
+	    break;
+	    case "left":
+	    	content = "api/left";
+	    break;	
+	    case "right":
+	    	content = "api/right";
+	    break;
+	    case "brake":
+	    	content = "api/brake";
+	    break;
+	    case "man":
+	      content = "api/man";
+	    break;
+	    case "laser":
+	      content = "api/laser";
+	    break;
+	    case "photo":
+	      content = "api/photo"
+	    break;
+	  }
+	  console.log("API: " + content);
+	  request.onreadystatechange=function() {
+	    if (request.readyState==4) {
+	      if (request.status!=200) {
+	        if (cb_404)  {
+	          cb_404(request.text);
+	        } else {
+	          console.log("ERROR : Received response:\n" + request.responseText);
+	        }
+	      } else {
+	        console.log(request.responseText);
+	        if (cb_200) {
+	          cb_200(request.responseText);
+	        } else {
+	          // decide something
+	        }
+	      }
+	    }
+	  }
+	  request.open("GET", content, true);
+	  request.send();
+	}
+
+	function onDownKey(e) {
+		window.onkeydown = null;
+		if (e.keyIdentifier) {
+			switch(e.keyIdentifier) {
+				case "Up":
+					send_message("up", null, null);
+				break;
+				case "Down":
+					send_message("down", null, null);
+				break;
+				case "Left":
+					send_message("left", null, null);
+				break;
+				case "Right":
+					send_message("right", null, null);
+				break;
+			}
+		}
+	}
+
+	function updateStateValue(t) {
+		rgxp = /state:\s*([0-9]+)/;
+		state = rgxp.exec(t);
+		if (state) {
+			switch(state[1]) {
+				case "1":
+					state_value.innerHTML = "IDLE";
+				break;
+				case "2":
+					state_value.innerHTML = "FOLLOW<br>LASER";
+				break;
+				case "3":
+					state_value.innerHTML = "MANUAL";
+				break;
+				case "4":
+					state_value.innerHTML = "DEAD MAN<br>WALKING";
+				break;
+			}
+		}
+
+	}
+
+	window.onkeydown = onDownKey;
+
+	window.onkeyup = function(e) {
+		window.onkeydown = onDownKey;
+		send_message("brake", null, 
+			function(t) { send_message("query", null, 
+				function(b) { updateStateValue(b); }
+			)});
+	}
+
+	photo_btn.onclick = function(e) {
+		send_message("photo", null, 
+			function(t) { window.location.reload()});
+	}
+
+	remote_btn.onclick = function(e) {
+		send_message("laser", null, 
+			function(t) { send_message("query", null, 
+				function(b) { updateStateValue(b); }
+			)});
+	}
+
+	stop_btn.onclick = function(e) { 
+		send_message("stop", null, 
+			function(t) { send_message("query", null, 
+				function(b) { updateStateValue(b); }
+			)}); 
+	}
+
+	manual_btn.onclick = function() {
+		send_message("man", null,
+			function(t) { send_message("query", null, 
+				function(b) { updateStateValue(b); }
+			)});
+	}
+
+	window.onload = function() {
+		send_message("query", null,	function(b) { updateStateValue(b); });
+	}
+
+	setInterval(function() {
+		console.log("Query");
+		send_message("query", null,	function(b) { updateStateValue(b); });
+	}, 5000);
+  </script>
+  </body>
+</html>
