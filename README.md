@@ -4,8 +4,7 @@ Imagine to play a chess game with 32 robotic chessmate! Quite big also... Don't 
 
 ## /dev/null Team
 
-Our team is fromjgithub
- University of Trento:
+Our team is from University of Trento:
 
  * Paolo Bosetti
  * Roberto Mendicino
