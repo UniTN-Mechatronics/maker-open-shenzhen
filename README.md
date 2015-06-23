@@ -1,4 +1,4 @@
-# Laser Sabre Chess
+# Lightsabre Chessman
 
 Imagine to play a chess game with 32 robotic chessmate! Quite big also... Don't you think it would be really confortable to move it remotely by the use of a laser pointer... It is just **awesome**!
 
